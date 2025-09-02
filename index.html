@@ -1,39 +1,237 @@
-
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en" >
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Antipublic</title>
-    <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden; /* Evita scroll */
-        }
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: black;
-            color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-        }
-        h1 {
-            font-size: 5vw; /* Se ajusta según el ancho de la pantalla */
-            line-height: 1.2;
-        }
-        @media (max-width: 600px) {
-            h1 {
-                font-size: 8vw; /* Más grande en móviles */
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Untitled</title>
+  <link rel="stylesheet" href="./style.css">
+
 </head>
 <body>
-    <h1>UN SALUDO A LA FAMILIA MISH</h1>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antipublic DVD Realistic Lens Flare + Kaomoji + Counter</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<canvas id="dvdCanvas"></canvas>
+<canvas id="overlayCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById("dvdCanvas");
+const ctx = canvas.getContext("2d");
+const overlay = document.getElementById("overlayCanvas");
+const octx = overlay.getContext("2d");
+
+function resizeCanvas() {
+    canvas.width = overlay.width = window.innerWidth;
+    canvas.height = overlay.height = window.innerHeight;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+const barHeight = 15;
+
+// Contador de rebotes
+let bounceCounter = 0; // empieza en 0
+
+// Texto animado de la barra
+let barTexts = ["Work in progress, come back later", "Owner is sleeping, please wait"];
+let barIndex = 0;
+let barAlpha = 0;
+
+// Ciclo de animación de barra
+let fadeInTime = 30;
+let stayTime = 240;
+let fadeOutTime = 30;
+let textTimer = 0;
+let phase = "fadeIn";
+
+// Logo antipublic
+const logo = {
+    text: "antipublic",
+    fontSize: Math.max(canvas.width, canvas.height)/14,
+    x: Math.random() * (canvas.width - 250),
+    y: barHeight + Math.random() * (canvas.height - barHeight - 60),
+    dx: (Math.random() > 0.5 ? 1 : -1) * 2,
+    dy: (Math.random() > 0.5 ? 1 : -1) * 2,
+    color: "#FFD86E"
+};
+
+// Kaomoji
+const kaomoji = {
+    text: "(╥﹏╥)",
+    fontSize: 18,
+    x: Math.random() * (canvas.width - 100),
+    y: barHeight + Math.random() * (canvas.height - barHeight - 50),
+    dx: (Math.random() > 0.5 ? 1 : -1) * 2,
+    dy: (Math.random() > 0.5 ? 1 : -1) * 2,
+    color: "#FFFFFF"
+};
+
+// Evitar solapamiento inicial
+ctx.font = `${logo.fontSize}px sans-serif`;
+if(Math.abs(logo.x - kaomoji.x) < 100) {
+    kaomoji.x += 100;
+    if(kaomoji.x + ctx.measureText(kaomoji.text).width > canvas.width) {
+        kaomoji.x = canvas.width - ctx.measureText(kaomoji.text).width - 10;
+    }
+}
+if(Math.abs(logo.y - kaomoji.y) < 30) {
+    kaomoji.y += 30;
+    if(kaomoji.y + kaomoji.fontSize > canvas.height) {
+        kaomoji.y = canvas.height - kaomoji.fontSize - 10;
+    }
+}
+
+const colors = ["#FFD86E","#6EC7FF","#FF6E6E","#FFFFFF"];
+
+// Actualiza la animación de texto negro
+function updateBarText() {
+    textTimer++;
+    switch(phase) {
+        case "fadeIn":
+            barAlpha = Math.min(textTimer / fadeInTime, 1);
+            if(textTimer >= fadeInTime){
+                textTimer = 0;
+                phase = "stay";
+            }
+            break;
+        case "stay":
+            barAlpha = 1;
+            if(textTimer >= stayTime){
+                textTimer = 0;
+                phase = "fadeOut";
+            }
+            break;
+        case "fadeOut":
+            barAlpha = Math.max(1 - textTimer / fadeOutTime, 0);
+            if(textTimer >= fadeOutTime){
+                textTimer = 0;
+                barIndex = (barIndex + 1) % barTexts.length;
+                phase = "fadeIn";
+            }
+            break;
+    }
+}
+
+// Rebotes
+function bounceEntity(entity) {
+    ctx.font = `${entity.fontSize}px sans-serif`;
+    const textWidth = ctx.measureText(entity.text).width;
+    const textHeight = entity.fontSize;
+    let hitEdge = false;
+
+    if(entity.y <= barHeight){
+        entity.y = barHeight;
+        entity.dy = Math.abs(entity.dy);
+        hitEdge = true;
+    }
+    if(entity.y + textHeight >= canvas.height){
+        entity.y = canvas.height - textHeight;
+        entity.dy = -Math.abs(entity.dy);
+        hitEdge = true;
+    }
+    if(entity.x + textWidth >= canvas.width){
+        entity.x = canvas.width - textWidth;
+        entity.dx = -Math.abs(entity.dx);
+        hitEdge = true;
+    }
+    if(entity.x <= 0){
+        entity.x = 0;
+        entity.dx = Math.abs(entity.dx);
+        hitEdge = true;
+    }
+
+    if(hitEdge){
+        bounceCounter++;
+        if(entity === logo){
+            entity.color = colors[Math.floor(Math.random() * colors.length)];
+        }
+    }
+
+    entity.x += entity.dx;
+    entity.y += entity.dy;
+}
+
+// Overlay simple
+function drawOverlay() {
+    octx.clearRect(0,0,overlay.width,overlay.height);
+    const dotSize = 2;
+    const spacing = 5;
+    octx.fillStyle = "rgba(255,255,255,0.08)";
+    for(let y=0; y<overlay.height; y+=spacing){
+        for(let x=0; x<overlay.width; x+=spacing){
+            if(Math.random() < 0.35){
+                octx.fillRect(x, y, dotSize, dotSize);
+            }
+        }
+    }
+}
+
+// Dibuja contador simple
+function drawCounter() {
+    const counterText = bounceCounter.toString();
+    const fontSize = 24;
+    ctx.font = `${fontSize}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "white";
+    ctx.fillText(counterText, canvas.width/2, barHeight + (canvas.height - barHeight)/2);
+}
+
+// Animación principal
+function animate() {
+    ctx.fillStyle = "rgba(0,0,0,0.15)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // Barra blanca
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0,0,canvas.width,barHeight);
+
+    // Texto barra
+    updateBarText();
+    ctx.font = `${barHeight*0.8}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = `rgba(0,0,0,${barAlpha})`;
+    ctx.fillText(barTexts[barIndex], canvas.width/2, barHeight/2);
+
+    // Logo
+    ctx.font = `${logo.fontSize}px sans-serif`;
+    ctx.textBaseline = "top";
+    ctx.textAlign = "left";
+    ctx.fillStyle = logo.color;
+    ctx.fillText(logo.text, logo.x, logo.y);
+
+    // Kaomoji
+    ctx.font = `${kaomoji.fontSize}px sans-serif`;
+    ctx.fillStyle = kaomoji.color;
+    ctx.fillText(kaomoji.text, kaomoji.x, kaomoji.y);
+
+    // Rebotes
+    bounceEntity(logo);
+    bounceEntity(kaomoji);
+
+    // Overlay
+    drawOverlay();
+
+    // Contador simple
+    drawCounter();
+
+    requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+</body>
+</html>
+<!-- partial -->
+  
 </body>
 </html>
