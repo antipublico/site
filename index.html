@@ -1,211 +1,36 @@
-<!doctype html>
-<html lang="es">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta name="google-site-verification" content="e5GNUGhIcvqq61ADBI-9B9dEDwpAZz6d39Ii4l3U4QU" />
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>Antipublic</title>
-  <link rel="icon" type="image/png" href="/icon.png" />
-  <style>
-    * { box-sizing: border-box; }
-    html, body {
-      height: 100%;
-      margin: 0;
-      overflow: hidden;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      user-select: none;
-      flex-direction: column;
-      transition: background 1s, color 1s;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antipublic</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    body.dark {
-      background: #000;
-      color: #fff;
-    }
-    body.light {
-      background: #fff;
-      color: #000;
-    }
+        html, body {
+            width: 100%;
+            height: 100%;
+            background-color: #000000;
+            overflow: hidden;
+            font-family: 'IBM Plex Mono', monospace;
+        }
 
-    .content {
-      position: relative;
-      text-align: center;
-      width: 100%;
-      height: 100%;
-      filter: url(#agua);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .ak-img {
-      position: absolute;
-      top: 47%;
-      left: 50%;
-      width: 95%;
-      max-height: 90%;
-      transform: translate(-50%, -50%) translateX(-25px);
-      z-index: 1;
-      pointer-events: none;
-      transition: filter 1s ease, opacity 1s ease;
-    }
-
-    body.dark .ak-img {
-      filter: brightness(0) invert(1);
-      opacity: 0.15;
-    }
-    body.light .ak-img {
-      filter: brightness(0) invert(0);
-      opacity: 0.25;
-    }
-
-    h1 {
-      margin: 0 0 1rem;
-      line-height: 1.05;
-      font-weight: 800;
-      font-size: clamp(2rem, 8vw, 6rem);
-      letter-spacing: -0.02em;
-      position: relative;
-      z-index: 2;
-      transition: text-shadow 1s ease;
-    }
-
-    body.dark h1 {
-      text-shadow:
-        0 0 0.05em rgba(255,255,255,0.6),
-        0 0 0.6em rgba(255,255,255,0.25);
-    }
-    body.light h1 {
-      text-shadow:
-        0 0 0.05em rgba(0,0,0,0.6),
-        0 0 0.6em rgba(0,0,0,0.25);
-    }
-
-    p {
-      margin: 0 auto;
-      opacity: 0.85;
-      font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-      max-width: 70ch;
-      z-index: 2;
-      position: relative;
-      transition: text-shadow 1s ease;
-    }
-
-    body.dark p {
-      text-shadow:
-        0 0 0.02em rgba(255,255,255,0.35),
-        0 0 0.35em rgba(255,255,255,0.12);
-    }
-    body.light p {
-      text-shadow:
-        0 0 0.02em rgba(0,0,0,0.35),
-        0 0 0.35em rgba(0,0,0,0.12);
-    }
-
-    .credits {
-      position: fixed;
-      top: 8px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 13px;
-      opacity: 0.85;
-      text-align: center;
-      white-space: nowrap;
-      z-index: 3;
-      transition: text-shadow 1s ease;
-    }
-
-    body.dark .credits .highlight {
-      text-shadow: 0 0 2px #fff, 0 0 8px #fff, 0 0 12px #fff;
-    }
-    body.light .credits .highlight {
-      text-shadow: 0 0 2px #000, 0 0 8px #000, 0 0 12px #000;
-    }
-
-    .credits .highlight {
-      font-weight: 600;
-    }
-  </style>
+        #root {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 </head>
-<body class="dark">
-  <!-- Filtro SVG agua -->
-  <svg width="0" height="0" style="position:absolute">
-    <filter id="agua">
-      <feTurbulence type="fractalNoise"
-                    baseFrequency="0.008 0.012"
-                    numOctaves="3"
-                    seed="8"
-                    result="turb">
-        <animate attributeName="baseFrequency"
-                 dur="14s"
-                 values="0.008 0.012; 0.012 0.018; 0.006 0.010; 0.008 0.012"
-                 repeatCount="indefinite" />
-      </feTurbulence>
-      <feDisplacementMap in="SourceGraphic"
-                         in2="turb"
-                         scale="12"
-                         xChannelSelector="R"
-                         yChannelSelector="G">
-        <animate attributeName="scale"
-                 dur="12s"
-                 values="9; 14; 10; 12; 9"
-                 repeatCount="indefinite" />
-      </feDisplacementMap>
-    </filter>
-  </svg>
-
-  <!-- Créditos canción arriba -->
-  <div class="credits">
-    this song is from <span class="highlight">@sentfck</span> all rights to him (click to hear)
-  </div>
-
-  <main class="content">
-    <img src="title.png" alt="title" class="ak-img" style="top:45%;">
-    <h1>Antipublic</h1>
-    <p style="font-size:clamp(0.7rem, 2vw, 0.9rem); opacity:0.75; margin:0.25rem 0 0.5rem 0;">
-      Not ready yet
-    </p>
-    <p>not related to antipublic2025 by axesouljas, any inquiries reffer to owner@antipublic.org</p>
-  </main>
-
-  <!-- Audio -->
-  <audio id="bgmusic" autoplay loop muted>
-    <source src="song.mp3" type="audio/mpeg">
-    Tu navegador no soporta audio.
-  </audio>
-
-  <script>
-    const audio = document.getElementById("bgmusic");
-    window.addEventListener("click", () => {
-      if (audio.muted) {
-        audio.muted = false;
-        audio.play();
-      }
-    }, { once: true });
-
-    setInterval(() => {
-      document.body.classList.toggle("dark");
-      document.body.classList.toggle("light");
-    }, 5000);
-
-    document.addEventListener("keydown", (e) => {
-      if (
-        (e.ctrlKey || e.metaKey) &&
-        (e.key === "+" || e.key === "-" || e.key === "=" || e.key === "0")
-      ) {
-        e.preventDefault();
-      }
-    });
-
-    document.addEventListener("wheel", (e) => {
-      if (e.ctrlKey) {
-        e.preventDefault();
-      }
-    }, { passive: false });
-  </script>
+<body>
+    <div id="root"></div>
+    <script type="module" src="./main.jsx"></script>
 </body>
 </html>
