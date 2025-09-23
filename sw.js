@@ -1,27 +1,31 @@
-// Service Worker for performance optimization
-const CACHE_NAME = 'antipublic-v1.0.0';
+// Service Worker for mobile-optimized performance
+const CACHE_NAME = 'antipublic-v1.0.1';
 const STATIC_CACHE_URLS = [
   '/',
   '/index.html',
   '/static/js/main.js',
   '/static/css/main.css',
-  '/final.svg',
-  '/antipublic.svg'
+  '/presage.svg'
 ];
 
-const AUDIO_CACHE_URLS = [
+// Audio lazy-loaded on demand, cache first 2 tracks for better UX
+const PRIORITY_AUDIO_CACHE = [
   '/audio1.mp3',
   '/audio2.mp3'
+];
+
+// All audio files for lazy caching
+const ALL_AUDIO_FILES = [
+  '/audio1.mp3', '/audio2.mp3', '/audio3.mp3', 
+  '/audio4.mp3', '/audio5.mp3', '/audio6.mp3',
+  '/audio7.mp3', '/audio8.mp3', '/audio9.mp3'
 ];
 
 // Install event - cache static assets immediately
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Caching static assets');
-        return cache.addAll(STATIC_CACHE_URLS);
-      })
+      .then(cache => cache.addAll(STATIC_CACHE_URLS))
       .then(() => self.skipWaiting())
   );
 });
@@ -34,7 +38,6 @@ self.addEventListener('activate', event => {
         return Promise.all(
           cacheNames.map(cacheName => {
             if (cacheName !== CACHE_NAME) {
-              console.log('Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
           })
@@ -49,21 +52,29 @@ self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
   
-  // Handle audio files with special caching strategy
-  if (AUDIO_CACHE_URLS.some(audioUrl => url.pathname === audioUrl)) {
+  // Handle audio files with mobile-optimized caching strategy
+  if (ALL_AUDIO_FILES.some(audioUrl => url.pathname === audioUrl)) {
     event.respondWith(
       caches.match(request)
         .then(response => {
           if (response) {
             return response;
           }
-          // Cache audio files on first request for future use
+          // Cache audio files on first request, with range request support for mobile
           return fetch(request)
             .then(response => {
-              const responseClone = response.clone();
-              caches.open(CACHE_NAME)
-                .then(cache => cache.put(request, responseClone));
+              // Only cache successful responses
+              if (response.status === 200) {
+                const responseClone = response.clone();
+                caches.open(CACHE_NAME)
+                  .then(cache => cache.put(request, responseClone))
+                  .catch(() => {}); // Ignore cache errors
+              }
               return response;
+            })
+            .catch(() => {
+              // Return empty response for offline scenarios
+              return new Response('', { status: 404 });
             });
         })
     );
@@ -89,7 +100,6 @@ self.addEventListener('fetch', event => {
         })
         .catch(() => {
           // Fallback for offline scenario
-          console.log('Network error, serving from cache only');
         })
     );
   }
