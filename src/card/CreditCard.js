@@ -104,7 +104,7 @@ const CreditCard = ({
   const cvv = useRef(Math.floor(Math.random() * 900) + 100).current;
   
   const getSignaturePath = () => {
-    if (signature === 'delusional' || variant === 'inverted') {
+    if (signature === 'miguel' || variant === 'inverted') {
       return `
         <path d="M4617 1745 c-27 -70 -115 -498 -116 -567 -1 -54 -223 -178 -317 -178 -45 0 -55 86 -13 121 45 37 61 5 19 -41 -20 -22 -27 -40 -16 -40 32 0 91 76 77 99 -25 40 -71 21 -266 -107 -288 -189 -341 -186 -256 18 16 38 21 74 12 79 -20 13 -55 -29 -57 -69 -1 -16 -8 -67 -15 -112 -22 -136 88 -120 316 44 55 39 101 68 104 64 3 -3 16 -26 29 -51 32 -61 74 -57 232 23 l135 68 -14 -174 c-21 -272 14 -292 40 -23 15 150 31 232 48 237 18 6 19 13 3 23 -32 19 47 465 107 606 10 22 7 35 -7 35 -13 0 -33 -25 -45 -55z"/>
         <path d="M2200 1603 c-120 -126 -310 -394 -429 -603 l-73 -130 16 220 c39 534 -39 640 -205 280 -103 -223 -152 -610 -84 -666 20 -16 24 14 19 144 -8 191 31 384 109 544 125 253 160 201 132 -194 -30 -424 -18 -442 127 -195 188 322 473 677 542 677 60 0 -45 -820 -153 -1198 -10 -34 -11 -62 -2 -62 42 0 188 713 213 1032 22 300 -33 339 -212 151z"/>
@@ -251,10 +251,10 @@ const CreditCard = ({
               <span className="signature-text">Authorized Signature</span>
               <div className="signature-line">
                 <svg className="signature-svg" version="1.0" xmlns="http://www.w3.org/2000/svg"
-                  width="300.000000pt" height={signature === 'delusional' || variant === 'inverted' ? "150.000000pt" : "178.000000pt"} 
-                  viewBox={signature === 'delusional' || variant === 'inverted' ? "0 0 300.000000 150.000000" : "0 0 300.000000 178.000000"}
+                  width="300.000000pt" height={signature === 'miguel' || variant === 'inverted' ? "150.000000pt" : "178.000000pt"} 
+                  viewBox={signature === 'miguel' || variant === 'inverted' ? "0 0 300.000000 150.000000" : "0 0 300.000000 178.000000"}
                   preserveAspectRatio="xMidYMid meet">
-                  <g transform={signature === 'delusional' || variant === 'inverted' ? "translate(0.000000,150.000000) scale(0.050000,-0.050000)" : "translate(0.000000,178.000000) scale(0.100000,-0.100000)"}
+                  <g transform={signature === 'miguel' || variant === 'inverted' ? "translate(0.000000,150.000000) scale(0.050000,-0.050000)" : "translate(0.000000,178.000000) scale(0.100000,-0.100000)"}
                     fill="#000000" stroke="none"
                     dangerouslySetInnerHTML={{ __html: getSignaturePath() }}
                   />
@@ -301,4 +301,3 @@ const CreditCard = ({
 };
 
 export default React.memo(CreditCard);
-

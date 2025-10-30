@@ -38,6 +38,9 @@ const App = () => {
   const [performanceMode, setPerformanceMode] = useState(false);
   const [showCard, setShowCard] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [homicideInverted, setHomicideInverted] = useState(false);
+  const [homicideFading, setHomicideFading] = useState(false);
+  const [dialogueText, setDialogueText] = useState([]);
   const horizontalLineRef = useRef(null);
   const verticalLineRef = useRef(null);
   const xLabelRef = useRef(null);
@@ -90,6 +93,17 @@ const App = () => {
   useEffect(() => {
     console.clear();
     console.log('%c%s', 'color: white; font: 12px "Courier New", monospace; line-height: 12px; background: transparent;', CONSOLE_ASCII_LOGO);
+  }, []);
+  
+  useEffect(() => {
+    // Load dialogue.txt
+    fetch('/dialogue.txt')
+      .then(response => response.text())
+      .then(text => {
+        const lines = text.split('\n').filter(line => line.trim());
+        setDialogueText(lines);
+      })
+      .catch(() => {});
   }, []);
   
   useEffect(() => {
@@ -207,15 +221,18 @@ const App = () => {
     };
   }, [isMobile, performanceMode]);
   const tracks = useMemo(() => [
-    { name: '2010 justin bieber', file: '/audio1.mp3' },
-    { name: 'true perspective', file: '/audio2.mp3' },
-    { name: 'tropical remix', file: '/audio3.mp3' },
-    { name: 'tragic freestyle', file: '/audio4.mp3', startOffset: 0.90 },
-    { name: 'jumanji', file: '/audio5.mp3' },
-    { name: 'top boy', file: '/audio6.mp3' },
-    { name: 'sospechoso24', file: '/audio7.mp3' },
-    { name: 'wflytd', file: '/audio8.mp3' },
-    { name: 'trauma', file: '/audio9.mp3' }
+    { name: '2010 justin bieber', file: '/audio1.mp3', url: 'https://on.soundcloud.com/vkjmZgvCUv8xQBwsNc' },
+    { name: 'true perspective', file: '/audio2.mp3', url: 'https://on.soundcloud.com/1aAW1x4kiAmJk6eGae' },
+    { name: 'tropical remix', file: '/audio3.mp3', url: 'https://on.soundcloud.com/CcK9coMHecTVRTgh1L' },
+    { name: 'tragic freestyle', file: '/audio4.mp3', startOffset: 0.90, url: 'https://on.soundcloud.com/1YI4WzXwH5YhV5Cfn3' },
+    { name: 'jumanji', file: '/audio5.mp3', url: 'https://on.soundcloud.com/ViHTwTv2GCXECjQpho' },
+    { name: 'top boy', file: '/audio6.mp3', url: 'https://on.soundcloud.com/emJdd0XhNOyU9xDf0S' },
+    { name: 'sospechoso24', file: '/audio7.mp3', url: 'https://on.soundcloud.com/9q4lgTGfe8SDv9EC6E' },
+    { name: 'wflytd', file: '/audio8.mp3', url: 'https://on.soundcloud.com/n0BcPp8SnH6lxO7kEC' },
+    { name: 'trauma', file: '/audio9.mp3', url: 'https://on.soundcloud.com/F2rsEoQYHVZRfimQVn' },
+    { name: 'no preguntes', file: '/audio10.mp3', url: 'https://on.soundcloud.com/K0m4KPNJnB2bY9TtBf' },
+    { name: 'interlude', file: '/audio11.mp3', url: 'https://on.soundcloud.com/IKO5ZyhJZilkWJLz7W' },
+    { name: 'homicide', file: '/audio12.mp3', url: 'https://on.soundcloud.com/SV5Hi99U8zFfwoPjYk' }
   ], []);
 
   useEffect(() => {
@@ -232,6 +249,7 @@ const App = () => {
     const shuffledTracks = shuffleTracks(tracks);
     let currentTrackIndex = 0;
     let isChangingTrack = false;
+    let currentMetadataHandler = null;
     
     setCurrentTrack(shuffledTracks[currentTrackIndex].name);
     
@@ -240,17 +258,34 @@ const App = () => {
       const applyStartOffsetIfAny = () => {
         const el = audio;
         if (!el) return;
+        
+        // Remove any existing metadata listener
+        if (currentMetadataHandler) {
+          el.removeEventListener('loadedmetadata', currentMetadataHandler);
+          currentMetadataHandler = null;
+        }
+        
         const offset = (shuffledTracks[currentTrackIndex].startOffset || 0);
+        
+        const setTime = () => {
+          try { 
+            el.currentTime = offset; 
+          } catch (e) {}
+        };
+        
         if (offset > 0) {
           if (el.readyState >= 1) {
-            try { el.currentTime = offset; } catch (e) {}
+            setTime();
           } else {
-            const onMeta = () => {
-              try { el.currentTime = offset; } catch (e) {}
-              el.removeEventListener('loadedmetadata', onMeta);
+            currentMetadataHandler = () => {
+              setTime();
+              currentMetadataHandler = null;
             };
-            el.addEventListener('loadedmetadata', onMeta, { once: true });
+            el.addEventListener('loadedmetadata', currentMetadataHandler, { once: true });
           }
+        } else {
+          // Reset to 0 for tracks without offset
+          setTime();
         }
       };
       
@@ -287,9 +322,21 @@ const App = () => {
       
       const handleCanPlay = () => {
         setCurrentTrack(shuffledTracks[currentTrackIndex].name);
+        if (shuffledTracks[currentTrackIndex].name === 'homicide') {
+          setHomicideInverted(true);
+          setHomicideFading(false);
+        }
       };
       
       const handleTrackEnd = () => {
+        if (shuffledTracks[currentTrackIndex].name === 'homicide') {
+          setHomicideFading(true);
+          setTimeout(() => {
+            setHomicideInverted(false);
+            setHomicideFading(false);
+          }, 1000);
+        }
+        
         fadeOut(() => {
           if (currentTrackIndex >= shuffledTracks.length - 1) {
             const newShuffle = shuffleTracks(tracks);
@@ -302,6 +349,10 @@ const App = () => {
           setCurrentTrack(shuffledTracks[currentTrackIndex].name);
           audio.src = shuffledTracks[currentTrackIndex].file;
           applyStartOffsetIfAny();
+          if (shuffledTracks[currentTrackIndex].name === 'homicide') {
+            setHomicideInverted(true);
+            setHomicideFading(false);
+          }
           fadeIn();
         });
       };
@@ -545,6 +596,7 @@ const App = () => {
 
   return (
     <>
+      <div className={`homicide-invert-overlay ${homicideInverted && !homicideFading ? 'active' : ''} ${homicideFading ? 'fading' : ''}`}></div>
       {isLoading && (
         <div className={`boot-screen ${bootFading ? 'fade-out' : ''}`}>
           <div className="boot-logo">
@@ -571,7 +623,7 @@ const App = () => {
         </div>
       )}
       
-      <audio ref={audioRef} loop={false} preload="auto" />
+      <audio ref={audioRef} loop={false} preload="none" />
       
       {!isLoading && (
         <div className="App visible">
@@ -608,7 +660,19 @@ const App = () => {
         )}
       </div>
 
-      <div className="top-text">audio: {currentTrack}.mp3</div>
+      <div className="top-text">
+        audio: 
+        <a 
+          href={tracks.find(t => t.name === currentTrack)?.url || '#'} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="song-link no-invert"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {currentTrack}
+        </a>
+        .mp3
+      </div>
       
       <div className="console-text">
         <span>antipublic.org</span>
@@ -618,19 +682,18 @@ const App = () => {
       
       <div className="cursor-coords">
         <span>owner@antipublic.org</span>
-        <span>21/09/25 7:22 AM</span>
+        <span>30/10/2025 2:41 AM</span>
         <span>{fps}fps</span>
-        {!isMobile && (
-          <></>
-        )}
       </div>
 
       <div className="bg-center">
         <Presage 
-          className={`bg-svg ${performanceMode ? 'performance-mode' : ''}`} 
-          style={{ 
-            opacity: 0.10
-          }}
+          className={`bg-svg ${performanceMode ? 'performance-mode' : ''} ${homicideInverted ? 'homicide-hidden' : ''}`}
+        />
+        <img 
+          src="/dani.jpg" 
+          alt="" 
+          className={`bg-image ${performanceMode ? 'performance-mode' : ''} ${homicideInverted && !homicideFading ? 'homicide-visible' : ''} ${homicideFading ? 'homicide-fading-out' : ''}`}
         />
       </div>
       
@@ -651,7 +714,7 @@ const App = () => {
       </div>
 
       {!isMobile && (
-        <div className="controls-area">
+        <div className="controls-area no-invert">
           <div className="performance-toggle" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPerformanceMode(!performanceMode); }}>
             <span>[{performanceMode ? 'performance: ON' : 'performance: OFF'}]</span>
           </div>
@@ -723,6 +786,19 @@ const App = () => {
       {!isLoading && (
         <div className="browsing-indicator">
           <span>[browsing index.html]</span>
+        </div>
+      )}
+      
+      {!isLoading && !showEntranceScreen && !showCard && dialogueText.length > 0 && (
+        <div className="dialogue-scroll-container">
+          <div className="dialogue-scroll">
+            {dialogueText.map((line, index) => (
+              <div key={index} className="dialogue-line">{line}</div>
+            ))}
+            {dialogueText.map((line, index) => (
+              <div key={`dup-${index}`} className="dialogue-line">{line}</div>
+            ))}
+          </div>
         </div>
       )}
       
